@@ -3,7 +3,7 @@ console.log('USING PLAYGROUND CONFIG')
 
 export default [
   {
-    files: ['*.md'],
+    files: ['**/*.md'],
     processor: frontmatter.processors.markdown,
     plugins: {
       frontmatter,

@@ -1,5 +1,5 @@
 ---
-title1: Hello World
+title: Hello World
 date: 2025-01-01
 tags: [blog, test]
 author: John Doe

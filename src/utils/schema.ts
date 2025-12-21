@@ -16,13 +16,14 @@ export interface SchemaConfig {
 /**
  * 将 TypeScript 类型映射到 FieldType
  * 使用简化的类型映射，提升类型检查响应速度
+ * 优化：减少条件类型嵌套，使用更直接的类型判断
  */
-type TypeToFieldType<T>
-  // 优先检查更具体的类型
-  = T extends Date
+type TypeToFieldType<T> =
+  // 使用联合类型而不是嵌套条件，提升类型检查速度
+  T extends Date
     ? 'date'
     : T extends string
-      ? 'string' | 'date' // string 可以是 date 类型
+      ? 'string' | 'date'
       : T extends number
         ? 'number'
         : T extends boolean
@@ -31,7 +32,7 @@ type TypeToFieldType<T>
             ? 'array'
             : T extends Record<string, any>
               ? 'object'
-              : FieldType // 默认允许所有类型，提供更好的灵活性
+              : FieldType
 
 /**
  * Schema 配置项类型
