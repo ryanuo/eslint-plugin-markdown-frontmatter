@@ -2,7 +2,7 @@
  * 从 TypeScript 类型定义生成 ESLint 规则 schema 的工具函数
  */
 
-type FieldType = 'string' | 'number' | 'boolean' | 'array' | 'object' | 'date'
+export type FieldType = 'string' | 'number' | 'boolean' | 'array' | 'object' | 'date'
 
 export interface FieldSchema {
   type: FieldType
@@ -18,9 +18,9 @@ export interface SchemaConfig {
  * 使用简化的类型映射，提升类型检查响应速度
  * 优化：减少条件类型嵌套，使用更直接的类型判断
  */
-type TypeToFieldType<T> =
+type TypeToFieldType<T>
   // 使用联合类型而不是嵌套条件，提升类型检查速度
-  T extends Date
+  = T extends Date
     ? 'date'
     : T extends string
       ? 'string' | 'date'

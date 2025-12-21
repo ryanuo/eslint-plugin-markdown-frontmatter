@@ -1,48 +1,8 @@
 import type { Rule } from 'eslint'
+import type { FieldSchema, SchemaConfig } from '../utils/schema'
 import { readFileSync } from 'node:fs'
 import matter from 'gray-matter'
-
-type FieldType = 'string' | 'number' | 'boolean' | 'array' | 'object' | 'date'
-
-interface FieldSchema {
-  type: FieldType
-  required?: boolean
-}
-
-interface SchemaConfig {
-  [key: string]: FieldSchema | FieldType
-}
-
-function getFieldType(value: unknown): FieldType | null {
-  if (value === null || value === undefined)
-    return null
-
-  if (Array.isArray(value))
-    return 'array'
-
-  if (value instanceof Date)
-    return 'date'
-
-  const jsType = typeof value
-  if (jsType === 'string' || jsType === 'number' || jsType === 'boolean' || jsType === 'object')
-    return jsType
-
-  return null
-}
-
-function validateType(value: unknown, expectedType: FieldType): boolean {
-  const actualType = getFieldType(value)
-
-  if (actualType === null)
-    return false
-
-  // 日期类型特殊处理
-  if (expectedType === 'date') {
-    return actualType === 'date' || (actualType === 'string' && !Number.isNaN(Date.parse(value as string)))
-  }
-
-  return actualType === expectedType
-}
+import { getFieldType, validateType } from '../utils/validate'
 
 const rule: Rule.RuleModule = {
   meta: {
