@@ -51,6 +51,7 @@
     "@typescript-eslint/utils": "catalog:dev",
     "bumpp": "catalog:cli",
     "eslint": "catalog:cli",
+    "eslint-plugin-markdown": "catalog:",
     "eslint-plugin-markdown-frontmatter": "workspace:*",
     "gray-matter": "catalog:build",
     "lint-staged": "catalog:cli",
