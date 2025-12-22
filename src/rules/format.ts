@@ -50,7 +50,6 @@ const rule: Rule.RuleModule = {
 
     return {
 
-      // @eslint/markdown 解析 YAML frontmatter 节点时 type='yaml'
       yaml(node: any) {
         if (!node.value)
           return
@@ -95,7 +94,18 @@ const rule: Rule.RuleModule = {
             if (!validateType(fieldValue, schema.type)) {
               context.report({
                 messageId: 'invalidType',
-                loc: mapping?.key?.loc || node.position,
+                loc: mapping?.key?.loc
+                  ? {
+                      start: {
+                        line: mapping?.key?.loc.start.line + 1,
+                        column: mapping?.key?.loc.end.column + 2,
+                      },
+                      end: {
+                        line: mapping?.key?.loc.end.line + 1,
+                        column: mapping?.key?.loc.end.column + 2,
+                      },
+                    }
+                  : node.position,
                 data: { field: fieldName, expectedType: schema.type, actualType },
               })
             }
@@ -123,8 +133,6 @@ function findYAMLMapping(
       pair.key?.type === 'YAMLScalar'
       && pair.key.value === field
     ) {
-      pair.key.loc.start.line = pair.key.loc.start.line += 1
-      pair.key.loc.start.column = pair.key.loc.end.column + 2
       return pair
     }
   }
