@@ -7,4 +7,5 @@ export default defineConfig({
   dts: true,
   exports: true,
   publint: true,
+  external: ['yaml-eslint-parser'],
 })

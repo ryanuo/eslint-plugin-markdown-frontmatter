@@ -44,11 +44,14 @@
     "prepare": "simple-git-hooks",
     "publish": "pnpm publish"
   },
+  "dependencies": {
+    "yaml-eslint-parser": "catalog:dev"
+  },
   "devDependencies": {
     "@antfu/eslint-config": "catalog:cli",
     "@antfu/ni": "catalog:cli",
     "@antfu/utils": "catalog:inlined",
-    "@eslint/markdown": "catalog:",
+    "@eslint/markdown": "catalog:dev",
     "@types/node": "catalog:types",
     "@typescript-eslint/utils": "catalog:dev",
     "bumpp": "catalog:cli",

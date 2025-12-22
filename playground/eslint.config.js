@@ -1,39 +1,27 @@
-import frontmatter from '../dist/index.mjs'
-console.log('USING PLAYGROUND CONFIG')
+// eslint.config.js
+import markdown from '@eslint/markdown'
+import frontmatterPlugin from 'eslint-plugin-markdown-frontmatter'
 
 export default [
   {
     files: ['**/*.md'],
-    processor: frontmatter.processors.markdown,
     plugins: {
-      frontmatter,
+      markdown,
+      'markdown-frontmatter': frontmatterPlugin,
+    },
+    language: 'markdown/gfm',
+    languageOptions: {
+      frontmatter: 'yaml',
     },
     rules: {
-      // 使用自定义 schema 配置
-      'frontmatter/format': [
-        'error',
-        {
-          schema: {
-            // 必需字段，使用完整配置对象
-            title: {
-              type: 'string',
-              required: true,
-            },
-            // 必需字段，使用简写形式（默认 required: false，但可以显式设置）
-            date: {
-              type: 'date',
-              required: true,
-            },
-            // 可选字段，使用简写形式
-            tags: 'array',
-            // 可选字段，使用完整配置
-            author: {
-              type: 'string',
-              required: false,
-            },
-          },
+      // 你的 frontmatter 验证规则
+      'markdown-frontmatter/format': ['error', {
+        schema: {
+          title: { type: 'string', required: true },
+          date: { type: 'date', required: true },
+          tags: { type: 'array', required: false },
         },
-      ],
+      }],
     },
   },
 ]

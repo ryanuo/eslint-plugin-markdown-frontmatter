@@ -44,9 +44,15 @@ catalogs:
       specifier: ^7.2.7
       version: 7.2.7
   dev:
+    '@eslint/markdown':
+      specifier: ^7.5.1
+      version: 7.5.1
     '@typescript-eslint/utils':
       specifier: ^8.50.0
       version: 8.50.0
+    yaml-eslint-parser:
+      specifier: ^1.3.2
+      version: 1.3.2
   inlined:
     '@antfu/utils':
       specifier: ^9.3.0
@@ -72,6 +78,10 @@ catalogs:
 importers:
 
   .:
+    dependencies:
+      yaml-eslint-parser:
+        specifier: catalog:dev
+        version: 1.3.2
     devDependencies:
       '@antfu/eslint-config':
         specifier: catalog:cli
@@ -82,6 +92,9 @@ importers:
       '@antfu/utils':
         specifier: catalog:inlined
         version: 9.3.0
+      '@eslint/markdown':
+        specifier: catalog:dev
+        version: 7.5.1
       '@types/node':
         specifier: catalog:types
         version: 25.0.1
