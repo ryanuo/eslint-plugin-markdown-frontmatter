@@ -5,18 +5,23 @@
 ### 方式 1: 直接在配置中定义 schema
 
 ```js
+import markdown from '@eslint/markdown'
 // eslint.config.js
 import frontmatter from 'eslint-plugin-markdown-frontmatter'
 
 export default [
   {
     files: ['**/*.md'],
-    processor: frontmatter.processors.markdown,
     plugins: {
-      frontmatter,
+      markdown,
+      'markdown-frontmatter': frontmatter,
+    },
+    language: 'markdown/gfm',
+    languageOptions: {
+      frontmatter: 'yaml',
     },
     rules: {
-      'frontmatter/format': [
+      'markdown-frontmatter/format': [
         'error',
         {
           schema: {
@@ -64,18 +69,24 @@ export const blogPostSchema: SchemaConfig = generateSchema<BlogPostFrontmatter>(
 ```
 
 ```js
+import markdown from '@eslint/markdown'
+import frontmatter from 'eslint-plugin-markdown-frontmatter'
 // eslint.config.js
 import { blogPostSchema } from './schema.js'
 
 export default [
   {
     files: ['**/*.md'],
-    processor: frontmatter.processors.markdown,
     plugins: {
-      frontmatter,
+      markdown,
+      'markdown-frontmatter': frontmatter,
+    },
+    language: 'markdown/gfm',
+    languageOptions: {
+      frontmatter: 'yaml',
     },
     rules: {
-      'frontmatter/format': ['error', { schema: blogPostSchema }],
+      'markdown-frontmatter/format': ['error', { schema: blogPostSchema }],
     },
   },
 ]
@@ -87,11 +98,11 @@ export default [
 import { createSchema } from 'eslint-plugin-markdown-frontmatter'
 
 const schema = createSchema({
-  title: 'string',              // 必需字段
-  date: 'date',                 // 必需字段
-  tags: ['array', false],       // 可选字段
-  author: ['string', false],    // 可选字段
-  published: 'boolean',         // 必需字段
+  title: 'string', // 必需字段
+  date: 'date', // 必需字段
+  tags: ['array', false], // 可选字段
+  author: ['string', false], // 可选字段
+  published: 'boolean', // 必需字段
 })
 ```
 
@@ -109,19 +120,19 @@ const schema = createSchema({
 ### 完整配置对象
 
 ```js
-{
+const config = {
   fieldName: {
-    type: 'string',    // 字段类型
-    required: true,    // 是否必需（默认 false）
-  }
+    type: 'string', // 字段类型
+    required: true, // 是否必需（默认 false）
+  },
 }
 ```
 
 ### 简写形式
 
 ```js
-{
-  fieldName: 'string'  // 等同于 { type: 'string', required: false }
+const config = {
+  fieldName: 'string', // 等同于 { type: 'string', required: false }
 }
 ```
-
+```

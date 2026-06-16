@@ -6,11 +6,11 @@ import { generateSchema } from '../src/utils/schema'
 
 // 定义接口
 interface BlogPostFrontmatter {
-  title: string           // 必需字段
-  date: string | Date     // 必需字段
-  tags?: string[]         // 可选字段
-  author?: string         // 可选字段
-  published: boolean      // 必需字段
+  title: string // 必需字段
+  date: string | Date // 必需字段
+  tags?: string[] // 可选字段
+  author?: string // 可选字段
+  published: boolean // 必需字段
 }
 
 // ✅ 正确的配置 - 不会报错
@@ -55,4 +55,3 @@ const correctSchemaShort = generateSchema<BlogPostFrontmatter>({
 // })
 
 export { correctSchema, correctSchemaShort }
-

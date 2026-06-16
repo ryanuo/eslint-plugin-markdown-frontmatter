@@ -26,12 +26,12 @@ const blogPostSchema: SchemaConfig = generateSchema<BlogPostFrontmatter>({
 })
 
 // 方式 3: 使用简化的 createSchema
-const simpleSchema = createSchema({
-  title: 'string',              // 必需字段
-  date: 'date',                 // 必需字段
-  tags: ['array', false],       // 可选字段
-  author: ['string', false],    // 可选字段
-  published: 'boolean',          // 必需字段
+const _simpleSchema = createSchema({
+  title: 'string', // 必需字段
+  date: 'date', // 必需字段
+  tags: ['array', false], // 可选字段
+  author: ['string', false], // 可选字段
+  published: 'boolean', // 必需字段
 })
 
 // 在 ESLint 配置中使用
@@ -40,9 +40,8 @@ export const eslintConfig = {
     'frontmatter/format': [
       'error',
       {
-        schema: blogPostSchema, // 或 simpleSchema
+        schema: blogPostSchema, // 或 _simpleSchema
       },
     ],
   },
 }
-

@@ -1,14 +1,79 @@
 import type { Rule } from 'eslint'
 import type { AST } from 'yaml-eslint-parser'
-import type { FieldSchema, SchemaConfig } from '../utils/schema'
+import type { SourceLocation } from 'yaml-eslint-parser/lib/ast'
 import { getStaticYAMLValue, parseYAML } from 'yaml-eslint-parser'
 import { getFieldType, validateType } from '../utils/validate'
+
+type FieldType = 'string' | 'number' | 'boolean' | 'array' | 'object' | 'date'
+
+export interface FieldSchema {
+  type: FieldType
+  required?: boolean
+}
+
+export type SchemaConfig = Record<string, FieldType | FieldSchema>
+
+/**
+ * 关键函数：
+ * 将 YAML AST 的 loc → 映射到 Markdown 文件中的 loc
+ *
+ * YAML AST 的行号是从 YAML 内容本身计算的（从 1 开始）
+ * 而 Markdown 中 frontmatter 的第一行是 '---'，YAML 内容从第二行开始
+ * 所以需要加上 1 行的偏移量
+ */
+function resolveYAMLLoc(
+  yamlLoc: AST.SourceLocation,
+  frontmatterNode: { position?: { start: { line: number } } },
+): SourceLocation {
+  if (!frontmatterNode.position)
+    return yamlLoc
+
+  // YAML 内容从 frontmatter 的第二行开始（第一行是 '---'）
+  const lineOffset = frontmatterNode.position.start.line
+
+  return {
+    start: {
+      line: yamlLoc.start.line + lineOffset,
+      column: yamlLoc.start.column,
+    },
+    end: {
+      line: yamlLoc.end.line + lineOffset,
+      column: yamlLoc.end.column,
+    },
+  }
+}
+
+/**
+ * 在 YAML AST 中找到某个字段对应的 pair
+ */
+function findYAMLPair(
+  program: AST.YAMLProgram,
+  field: string,
+): AST.YAMLPair | null {
+  const doc = program.body[0]
+  if (!doc || doc.type !== 'YAMLDocument')
+    return null
+
+  const content = doc.content
+  if (!content || content.type !== 'YAMLMapping')
+    return null
+
+  return (
+    content.pairs.find(
+      pair =>
+        pair.key?.type === 'YAMLScalar'
+        && pair.key.value === field,
+    ) ?? null
+  )
+}
+
+/* ======================= rule ======================= */
 
 const rule: Rule.RuleModule = {
   meta: {
     type: 'problem',
     docs: {
-      description: 'Validate markdown frontmatter against a schema',
+      description: 'Validate markdown frontmatter against schema',
     },
     schema: [
       {
@@ -18,11 +83,11 @@ const rule: Rule.RuleModule = {
             type: 'object',
             additionalProperties: {
               oneOf: [
-                { type: 'string', enum: ['string', 'number', 'boolean', 'array', 'object', 'date'] },
+                { type: 'string' },
                 {
                   type: 'object',
                   properties: {
-                    type: { type: 'string', enum: ['string', 'number', 'boolean', 'array', 'object', 'date'] },
+                    type: { type: 'string' },
                     required: { type: 'boolean' },
                   },
                   required: ['type'],
@@ -43,13 +108,11 @@ const rule: Rule.RuleModule = {
 
   create(context) {
     const options = context.options[0] || {}
-    const schemaConfig: SchemaConfig = (options.schema as SchemaConfig) || {}
-    const defaultSchema: SchemaConfig = Object.keys(schemaConfig).length
-      ? schemaConfig
-      : { title: { type: 'string', required: true } }
+    const schemaConfig: SchemaConfig = options.schema || {
+      title: { type: 'string', required: true },
+    }
 
     return {
-
       yaml(node: any) {
         if (!node.value)
           return
@@ -62,82 +125,62 @@ const rule: Rule.RuleModule = {
           return
         }
 
-        // 获取前matter的 JS 值
         const data = getStaticYAMLValue(ast)
         if (!data || typeof data !== 'object')
           return
 
-        for (const [fieldName, fieldConfig] of Object.entries(defaultSchema)) {
-          const fieldValue = data[fieldName as keyof typeof data]
-          const isPresent = fieldName in data
-
+        for (const [fieldName, config] of Object.entries(schemaConfig)) {
           const schema: FieldSchema
-            = typeof fieldConfig === 'string'
-              ? { type: fieldConfig, required: false }
-              : { required: false, ...fieldConfig }
+            = typeof config === 'string'
+              ? { type: config }
+              : { required: false, ...config }
 
-          // 必填字段检查
+          const isPresent = fieldName in data
+          const value = (data as any)[fieldName]
+
+          /* -------- missing field -------- */
           if (schema.required && !isPresent) {
+            const reportLocation = node.position
+              ? {
+                  start: {
+                    line: node.position.start.line,
+                    column: node.position.start.column,
+                  },
+                  end: {
+                    line: node.position.end.line,
+                    column: node.position.end.column,
+                  },
+                }
+              : { start: { line: 1, column: 0 }, end: { line: 1, column: 0 } }
+
             context.report({
               messageId: 'missingField',
-              loc: node.position,
+              loc: reportLocation,
               data: { field: fieldName },
             })
             continue
           }
 
-          // 类型检查
-          if (isPresent && fieldValue !== undefined && fieldValue !== null) {
-            const actualType = getFieldType(fieldValue)
-            const mapping = findYAMLMapping(ast, fieldName)
+          /* -------- type invalid -------- */
+          if (isPresent && value != null && !validateType(value, schema.type)) {
+            const pair = findYAMLPair(ast, fieldName)
 
-            if (!validateType(fieldValue, schema.type)) {
-              context.report({
-                messageId: 'invalidType',
-                loc: mapping?.key?.loc
-                  ? {
-                      start: {
-                        line: mapping?.key?.loc.start.line + 1,
-                        column: mapping?.key?.loc.end.column + 2,
-                      },
-                      end: {
-                        line: mapping?.key?.loc.end.line + 1,
-                        column: mapping?.key?.loc.end.column + 2,
-                      },
-                    }
-                  : node.position,
-                data: { field: fieldName, expectedType: schema.type, actualType },
-              })
-            }
+            context.report({
+              messageId: 'invalidType',
+              loc: pair?.key?.loc
+                ? resolveYAMLLoc(pair.key.loc, node)
+                : { start: { line: 1, column: 0 }, end: { line: 1, column: 0 } },
+              data: {
+                field: fieldName,
+                expectedType: schema.type,
+                actualType: getFieldType(value),
+              },
+            })
           }
         }
       },
     }
   },
-}
-
-function findYAMLMapping(
-  program: AST.YAMLProgram,
-  field: string,
-): AST.YAMLPair | null {
-  const doc = program.body[0]
-  if (!doc || doc.type !== 'YAMLDocument')
-    return null
-
-  const content = doc.content
-  if (!content || content.type !== 'YAMLMapping')
-    return null
-
-  for (const pair of content.pairs) {
-    if (
-      pair.key?.type === 'YAMLScalar'
-      && pair.key.value === field
-    ) {
-      return pair
-    }
-  }
-
-  return null
 }
 
 export default rule

@@ -51,4 +51,3 @@ const correctSchema = generateSchema<BlogPostFrontmatter>({
 // })
 
 export { correctSchema }
-

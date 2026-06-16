@@ -1,6 +1,6 @@
 /**
  * 类型检查示例：展示 TypeScript 类型检查如何工作
- * 
+ *
  * 在 IDE 中，以下错误配置会显示红色波浪线（爆红）
  */
 
@@ -8,11 +8,11 @@ import { generateSchema } from '../src/utils/schema'
 
 // 定义接口
 interface BlogPostFrontmatter {
-  title: string           // 必需字段
-  date: string | Date     // 必需字段（联合类型）
-  tags?: string[]         // 可选字段
-  author?: string         // 可选字段
-  published: boolean      // 必需字段
+  title: string // 必需字段
+  date: string | Date // 必需字段（联合类型）
+  tags?: string[] // 可选字段
+  author?: string // 可选字段
+  published: boolean // 必需字段
 }
 
 // ✅ 正确的配置 - 不会报错
@@ -38,7 +38,7 @@ const correctSchemaShort = generateSchema<BlogPostFrontmatter>({
 
 // 错误 1: 字段类型不匹配
 // const error1 = generateSchema<BlogPostFrontmatter>({
-//   title: { type: 'number', required: true }, 
+//   title: { type: 'number', required: true },
 //   // ❌ Type 'number' is not assignable to type 'string' | 'date'
 // })
 
@@ -55,4 +55,3 @@ const correctSchemaShort = generateSchema<BlogPostFrontmatter>({
 // })
 
 export { correctSchema, correctSchemaShort }
-
