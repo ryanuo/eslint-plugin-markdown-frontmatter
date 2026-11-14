@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/Post",
+  "definitions": {
+    "Post": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "cate": { "type": "string" },
+        "plum": { "type": "boolean" },
+        "titleStyle": {
+          "type": "object",
+          "properties": { "opacity": { "type": "number" } }
+        },
+        "count": { "type": "integer" },
+        "mixed": { "anyOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }] },
+        "level": { "enum": ["info", "warn"] }
+      },
+      "required": ["title", "description", "date"]
+    }
+  }
+}
