@@ -10,6 +10,9 @@ jobs:
     uses: sxzz/workflows/.github/workflows/release.yml@v1
     with:
       publish: true
+      # 不传 build 的话 sxzz 工作流里 `if: inputs.build && inputs.publish` 会跳过构建，
+      # 而 dist 不在 git 里（.gitignore），只能靠这一步产出
+      build: pnpm build
     permissions:
       contents: write
       id-token: write
